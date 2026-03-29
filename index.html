@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Wardrobe">
+<title>Wardrobe — Finance Bro.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #fafafa;
+  --card: #ffffff;
+  --text: #1a1a1a;
+  --sub: #888;
+  --mute: #bbb;
+  --border: #f0f0f0;
+  --accent: #1a1a1a;
+  --accent-light: #f5f5f5;
+  --green: #2e7d32;
+  --green-bg: #e8f5e9;
+  --red: #d32f2f;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --font: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --mono: 'DM Mono', monospace;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+::-webkit-scrollbar { display: none; }
+input, select, textarea, button { font-family: var(--font); }
+
+/* ── Layout ── */
+.app { max-width: 430px; margin: 0 auto; min-height: 100vh; position: relative; padding-bottom: 90px; }
+
+/* ── Header ── */
+.header {
+  padding: calc(var(--safe-top) + 20px) 20px 16px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 50;
+}
+.header-label { font-size: 10px; font-weight: 500; letter-spacing: 2.5px; color: var(--mute); text-transform: uppercase; font-family: var(--mono); }
+.header-title { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; margin-top: 2px; }
+.header-stats { display: flex; gap: 16px; margin-top: 10px; font-size: 13px; color: var(--sub); }
+.header-stats strong { color: var(--text); font-weight: 600; }
+
+/* ── Tabs ── */
+.tabs {
+  display: flex;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 40;
+}
+.tab {
+  flex: 1; padding: 12px 0; background: none; border: none; border-bottom: 2px solid transparent;
+  font-size: 14px; font-weight: 400; color: var(--sub); cursor: pointer; transition: all 0.2s;
+}
+.tab.active { border-bottom-color: var(--accent); color: var(--text); font-weight: 600; }
+
+/* ── Chips ── */
+.chips { display: flex; gap: 8px; overflow-x: auto; padding: 12px 20px; scrollbar-width: none; }
+.chip {
+  padding: 7px 14px; border-radius: 20px; border: 1px solid #e0e0e0; background: var(--card);
+  font-size: 13px; font-weight: 500; color: #555; cursor: pointer; white-space: nowrap; transition: all 0.15s;
+}
+.chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.chip:hover { border-color: #aaa; }
+.chip.sm { padding: 5px 11px; font-size: 12px; }
+
+/* ── Season pills ── */
+.season-bar { display: flex; gap: 8px; padding: 0 20px; }
+.season-pill {
+  flex: 1; padding: 10px 0; border-radius: 12px; border: 1px solid #e0e0e0;
+  background: var(--card); font-size: 14px; font-weight: 500; color: #555;
+  cursor: pointer; text-align: center; transition: all 0.2s;
+}
+.season-pill.active { color: #fff; border-color: transparent; }
+
+/* ── Item Card ── */
+.item-card {
+  display: flex; align-items: center; gap: 12px; padding: 12px 20px;
+  border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s;
+}
+.item-card:active { background: #f5f5f5; }
+.item-thumb {
+  width: 52px; height: 52px; border-radius: 12px; background: #eee;
+  flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center;
+  font-size: 22px; position: relative;
+}
+.item-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.item-thumb.dimmed { opacity: 0.35; }
+.item-info { flex: 1; min-width: 0; }
+.item-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-brand { font-size: 11px; color: var(--sub); margin-top: 2px; }
+.item-meta { display: flex; gap: 8px; align-items: center; margin-top: 3px; }
+.item-qty { font-size: 11px; font-family: var(--mono); color: var(--sub); background: var(--accent-light); padding: 1px 6px; border-radius: 4px; }
+.item-badge {
+  padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 500; white-space: nowrap;
+}
+.badge-owned { background: var(--green-bg); color: var(--green); }
+.badge-wish { background: #f5f5f5; color: var(--sub); }
+
+/* ── Section label ── */
+.section-label { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; color: var(--sub); text-transform: uppercase; padding: 16px 20px 4px; font-family: var(--mono); }
+
+/* ── Empty state ── */
+.empty { text-align: center; padding: 48px 20px; color: var(--mute); font-size: 14px; line-height: 1.6; }
+
+/* ── Buttons ── */
+.btn-primary {
+  width: 100%; padding: 14px; background: var(--accent); color: #fff; border: none;
+  border-radius: var(--radius); font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.2s;
+}
+.btn-primary:disabled { background: #ccc; cursor: default; }
+.btn-primary:active { opacity: 0.85; }
+.btn-outline {
+  padding: 10px 16px; background: var(--card); color: var(--text); border: 1px solid #e0e0e0;
+  border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s;
+}
+.btn-danger { color: var(--red); border-color: #fdd; }
+
+/* ── FAB ── */
+.fab {
+  position: fixed; bottom: calc(24px + var(--safe-bottom)); left: 50%; transform: translateX(-50%);
+  width: 56px; height: 56px; border-radius: 28px; background: var(--accent); color: #fff;
+  border: none; font-size: 28px; font-weight: 300; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  z-index: 30; display: flex; align-items: center; justify-content: center; transition: transform 0.2s;
+}
+.fab:active { transform: translateX(-50%) scale(0.92); }
+
+/* ── Modal ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100;
+  display: flex; align-items: flex-end; justify-content: center;
+  animation: fadeIn 0.2s;
+}
+.modal-sheet {
+  background: var(--card); border-radius: 20px 20px 0 0; padding: 24px 20px calc(32px + var(--safe-bottom));
+  width: 100%; max-width: 430px; max-height: 88vh; overflow-y: auto;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-title { font-size: 18px; font-weight: 600; }
+.modal-close { background: none; border: none; font-size: 22px; color: var(--sub); cursor: pointer; padding: 4px; }
+
+/* ── Form ── */
+.form-group { margin-bottom: 16px; }
+.form-label { font-size: 12px; font-weight: 600; color: var(--sub); letter-spacing: 0.5px; margin-bottom: 6px; display: block; }
+.form-input {
+  width: 100%; padding: 10px 14px; border-radius: 12px; border: 1px solid #e0e0e0;
+  font-size: 14px; outline: none; transition: border 0.2s; background: var(--card);
+}
+.form-input:focus { border-color: var(--accent); }
+.form-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ── Quantity control ── */
+.qty-control { display: flex; align-items: center; gap: 0; border: 1px solid #e0e0e0; border-radius: 10px; overflow: hidden; }
+.qty-btn { width: 36px; height: 36px; background: var(--accent-light); border: none; font-size: 18px; cursor: pointer; color: var(--text); font-weight: 500; }
+.qty-btn:active { background: #e0e0e0; }
+.qty-val { width: 40px; text-align: center; font-size: 15px; font-weight: 600; font-family: var(--mono); border: none; background: var(--card); }
+
+/* ── Photo upload ── */
+.photo-area {
+  width: 100%; aspect-ratio: 1; border-radius: var(--radius); border: 2px dashed #ddd;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  cursor: pointer; transition: border-color 0.2s; overflow: hidden; position: relative;
+  background: var(--accent-light);
+}
+.photo-area:hover { border-color: #aaa; }
+.photo-area img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
+.photo-area .placeholder { font-size: 13px; color: var(--sub); text-align: center; line-height: 1.5; }
+.photo-area .icon { font-size: 32px; opacity: 0.3; }
+.photo-remove {
+  position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; border-radius: 14px;
+  background: rgba(0,0,0,0.6); color: #fff; border: none; font-size: 14px; cursor: pointer; z-index: 2;
+}
+
+/* ── Color dot ── */
+.color-dot { width: 16px; height: 16px; border-radius: 8px; border: 2px solid #e0e0e0; flex-shrink: 0; }
+.color-btn { display: flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 20px; border: 1px solid #e0e0e0; background: var(--card); cursor: pointer; font-size: 12px; transition: all 0.15s; }
+.color-btn.active { border: 2px solid var(--accent); background: var(--accent-light); }
+
+/* ── Detail view ── */
+.detail { padding: 20px; }
+.detail-back { background: none; border: none; font-size: 14px; color: var(--sub); cursor: pointer; margin-bottom: 16px; padding: 0; }
+.detail-card { background: var(--card); border-radius: var(--radius); padding: 0; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+.detail-photo { width: 100%; aspect-ratio: 4/3; background: var(--accent-light); display: flex; align-items: center; justify-content: center; font-size: 48px; overflow: hidden; }
+.detail-photo img { width: 100%; height: 100%; object-fit: cover; }
+.detail-body { padding: 20px; }
+.detail-brand { font-size: 11px; font-weight: 500; color: var(--sub); letter-spacing: 1.5px; font-family: var(--mono); }
+.detail-name { font-size: 22px; font-weight: 600; margin-top: 4px; }
+.detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+.detail-row-label { color: var(--sub); }
+.detail-row-value { font-weight: 500; }
+.detail-actions { display: flex; gap: 10px; margin-top: 20px; }
+
+/* ── Toast ── */
+.toast {
+  position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+  background: var(--accent); color: #fff; padding: 10px 24px; border-radius: 20px;
+  font-size: 13px; font-weight: 500; z-index: 200; animation: fadeIn 0.2s;
+}
+
+/* ── Animations ── */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// Wardrobe Manager — Finance Bro. Edition
+// ══════════════════════════════════════════════════════════════
+
+const STORAGE_KEY = 'wardrobe_fb_v2';
+
+const CATEGORIES = [
+  { id:'outerwear', label:'アウター', icon:'🧥' },
+  { id:'tops', label:'トップス', icon:'👔' },
+  { id:'bottoms', label:'ボトムス', icon:'👖' },
+  { id:'shoes', label:'シューズ', icon:'👟' },
+  { id:'bags', label:'バッグ', icon:'🎒' },
+  { id:'suits', label:'スーツ', icon:'🤵' },
+  { id:'accessories', label:'小物', icon:'⌚' },
+];
+
+const SEASONS = [
+  { id:'spring', label:'春', color:'#7a9e7e' },
+  { id:'summer', label:'夏', color:'#c4956a' },
+  { id:'autumn', label:'秋', color:'#b07850' },
+  { id:'winter', label:'冬', color:'#5d7084' },
+];
+
+const CONTEXTS = [
+  { id:'work', label:'仕事' },
+  { id:'casual', label:'休日' },
+  { id:'formal', label:'フォーマル' },
+];
+
+const COLORS = [
+  { id:'black', label:'ブラック', hex:'#1a1a1a' },
+  { id:'navy', label:'ネイビー', hex:'#1e2d4a' },
+  { id:'charcoal', label:'チャコール', hex:'#3d3d3d' },
+  { id:'gray', label:'グレー', hex:'#7a7a7a' },
+  { id:'white', label:'ホワイト', hex:'#f0f0f0' },
+  { id:'olive', label:'オリーブ', hex:'#556b2f' },
+  { id:'blue', label:'ブルー', hex:'#3a6ea5' },
+  { id:'other', label:'その他', hex:'#b0a090' },
+];
+
+const PRESETS = [
+  { id:'p1', name:'Mionn IS Jacket', brand:'Veilance', category:'outerwear', color:'black', seasons:['spring','autumn'], contexts:['work','casual'], owned:true, qty:1, photo:'' },
+  { id:'p2', name:'Euler IS Jacket', brand:'Veilance', category:'outerwear', color:'black', seasons:['winter'], contexts:['work'], owned:false, qty:0, photo:'' },
+  { id:'p3', name:'Better Sweater Jacket', brand:'Patagonia', category:'outerwear', color:'navy', seasons:['spring','autumn','winter'], contexts:['work','casual'], owned:true, qty:1, photo:'' },
+  { id:'p4', name:'Nano Puff Jacket', brand:'Patagonia', category:'outerwear', color:'black', seasons:['winter'], contexts:['casual'], owned:false, qty:0, photo:'' },
+  { id:'p5', name:'R1 Jacket', brand:'Patagonia', category:'outerwear', color:'black', seasons:['spring','autumn'], contexts:['casual'], owned:false, qty:0, photo:'' },
+  { id:'p6', name:'Apollo Dress Shirt (White)', brand:'Ministry of Supply', category:'tops', color:'white', seasons:['spring','summer','autumn','winter'], contexts:['work','formal'], owned:false, qty:0, photo:'' },
+  { id:'p7', name:'Apollo Dress Shirt (Sax Blue)', brand:'Ministry of Supply', category:'tops', color:'blue', seasons:['spring','summer','autumn','winter'], contexts:['work','formal'], owned:false, qty:0, photo:'' },
+  { id:'p8', name:'Composite Merino Polo', brand:'Ministry of Supply', category:'tops', color:'navy', seasons:['summer'], contexts:['work'], owned:false, qty:0, photo:'' },
+  { id:'p9', name:'Evolution Polo', brand:'lululemon', category:'tops', color:'charcoal', seasons:['summer'], contexts:['work'], owned:false, qty:0, photo:'' },
+  { id:'p10', name:'Self Guided Polo', brand:'Patagonia', category:'tops', color:'navy', seasons:['summer'], contexts:['work','casual'], owned:false, qty:0, photo:'' },
+  { id:'p11', name:'エアリズムコットンT (White)', brand:'UNIQLO', category:'tops', color:'white', seasons:['spring','summer','autumn'], contexts:['work','casual'], owned:true, qty:2, photo:'' },
+  { id:'p12', name:'エアリズムコットンT (Gray)', brand:'UNIQLO', category:'tops', color:'gray', seasons:['spring','summer','autumn'], contexts:['work','casual'], owned:true, qty:2, photo:'' },
+  { id:'p13', name:'ABC Slim Pant', brand:'lululemon', category:'bottoms', color:'navy', seasons:['spring','summer','autumn','winter'], contexts:['work'], owned:false, qty:0, photo:'' },
+  { id:'p14', name:'Futureworks', brand:'Outlier', category:'bottoms', color:'charcoal', seasons:['spring','autumn'], contexts:['work'], owned:false, qty:0, photo:'' },
+  { id:'p15', name:'ジョガーパンツ', brand:'UNIQLO', category:'bottoms', color:'black', seasons:['spring','autumn','winter'], contexts:['casual'], owned:true, qty:1, photo:'' },
+  { id:'p16', name:'Baggies Shorts 5"', brand:'Patagonia', category:'bottoms', color:'black', seasons:['summer'], contexts:['casual'], owned:false, qty:0, photo:'' },
+  { id:'p17', name:'感動パンツ (Navy)', brand:'UNIQLO', category:'bottoms', color:'navy', seasons:['spring','summer','autumn'], contexts:['work'], owned:true, qty:1, photo:'' },
+  { id:'p18', name:'Cloudsurfer (All Black)', brand:'On', category:'shoes', color:'black', seasons:['spring','summer','autumn'], contexts:['work','casual'], owned:false, qty:0, photo:'' },
+  { id:'p19', name:'MOAB 3 (Black)', brand:'MERRELL', category:'shoes', color:'black', seasons:['autumn','winter'], contexts:['work','casual'], owned:false, qty:0, photo:'' },
+  { id:'p20', name:'Tree Runners', brand:'Allbirds', category:'shoes', color:'charcoal', seasons:['summer'], contexts:['work'], owned:false, qty:0, photo:'' },
+  { id:'p21', name:'Roger Clubhouse', brand:'On', category:'shoes', color:'white', seasons:['spring','summer','autumn'], contexts:['formal'], owned:false, qty:0, photo:'' },
+  { id:'p22', name:'ØriginalGrand (Black)', brand:'Cole Haan', category:'shoes', color:'black', seasons:['spring','summer','autumn','winter'], contexts:['formal'], owned:false, qty:0, photo:'' },
+  { id:'p23', name:'City Pack Pro', brand:'Aer', category:'bags', color:'black', seasons:['spring','summer','autumn','winter'], contexts:['work'], owned:true, qty:1, photo:'' },
+  { id:'p24', name:'Stem Backpack', brand:'Wexley', category:'bags', color:'black', seasons:['spring','summer','autumn','winter'], contexts:['work','casual'], owned:true, qty:1, photo:'' },
+  { id:'p25', name:'Velocity Suit (Navy)', brand:'Ministry of Supply', category:'suits', color:'navy', seasons:['spring','summer','autumn','winter'], contexts:['formal'], owned:false, qty:0, photo:'' },
+  { id:'p26', name:'ニットタイ', brand:'その他', category:'accessories', color:'navy', seasons:['spring','summer','autumn','winter'], contexts:['formal'], owned:false, qty:0, photo:'' },
+];
+
+// ── State ──
+let state = {
+  items: [],
+  view: 'closet',
+  tab: 'closet',
+  filterCat: 'all',
+  filterSeason: 'spring',
+  filterContext: 'work',
+  detailId: null,
+  showModal: false,
+  editId: null,
+  toast: null,
+  form: emptyForm(),
+};
+
+function emptyForm() {
+  return { name:'', brand:'', category:'tops', color:'black', seasons:[], contexts:[], owned:true, qty:1, photo:'' };
+}
+
+// ── Persistence ──
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) { const d = JSON.parse(raw); if (d.items) return d.items; }
+  } catch(e) {}
+  return null;
+}
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ items: state.items })); } catch(e) {}
+}
+
+// ── Init ──
+state.items = load() || JSON.parse(JSON.stringify(PRESETS));
+
+// ── Helpers ──
+function getCat(id) { return CATEGORIES.find(c=>c.id===id) || { label:'', icon:'?' }; }
+function getColor(id) { return COLORS.find(c=>c.id===id) || { label:'', hex:'#ccc' }; }
+function getSeason(id) { return SEASONS.find(s=>s.id===id) || { label:'' }; }
+function getContext(id) { return CONTEXTS.find(c=>c.id===id) || { label:'' }; }
+
+function showToast(msg) {
+  state.toast = msg;
+  render();
+  setTimeout(() => { state.toast = null; render(); }, 2000);
+}
+
+// ── Render engine ──
+function h(tag, attrs, ...children) {
+  const el = document.createElement(tag);
+  if (attrs) {
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === 'style' && typeof v === 'object') Object.assign(el.style, v);
+      else if (k.startsWith('on')) el.addEventListener(k.slice(2).toLowerCase(), v);
+      else if (k === 'className') el.className = v;
+      else if (k === 'htmlFor') el.setAttribute('for', v);
+      else el.setAttribute(k, v);
+    }
+  }
+  for (const c of children.flat()) {
+    if (c == null || c === false) continue;
+    el.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+  }
+  return el;
+}
+
+function render() {
+  const app = document.getElementById('app');
+  app.innerHTML = '';
+
+  // Header
+  const ownedCount = state.items.filter(i=>i.owned).length;
+  const totalQty = state.items.reduce((s,i) => s + (i.owned ? (i.qty||1) : 0), 0);
+  const wishCount = state.items.filter(i=>!i.owned).length;
+
+  app.appendChild(h('div', { className:'header' },
+    h('div', { className:'header-label' }, 'WARDROBE'),
+    h('div', { className:'header-title' }, 'Finance Bro.'),
+    h('div', { className:'header-stats' },
+      h('span', null, h('strong', null, ''+ownedCount), ' 種類'),
+      h('span', null, h('strong', null, ''+totalQty), ' 点'),
+      h('span', null, h('strong', null, ''+wishCount), ' ウィッシュ'),
+    )
+  ));
+
+  // Tabs
+  const tabs = h('div', { className:'tabs' });
+  [{id:'closet',label:'クローゼット'},{id:'coordinate',label:'コーデ'}].forEach(t => {
+    tabs.appendChild(h('button', {
+      className: 'tab' + (state.tab === t.id ? ' active' : ''),
+      onClick: () => { state.tab = t.id; state.view = t.id; render(); }
+    }, t.label));
+  });
+  app.appendChild(tabs);
+
+  if (state.view === 'closet') renderCloset(app);
+  else if (state.view === 'coordinate') renderCoordinate(app);
+  else if (state.view === 'detail') renderDetail(app);
+
+  // FAB
+  app.appendChild(h('button', { className:'fab', onClick: openAddModal }, '+'));
+
+  // Modal
+  if (state.showModal) renderModal(app);
+
+  // Toast
+  if (state.toast) app.appendChild(h('div', { className:'toast' }, state.toast));
+}
+
+// ── Closet View ──
+function renderCloset(app) {
+  const chips = h('div', { className:'chips' });
+  chips.appendChild(makeChip('すべて', state.filterCat==='all', () => { state.filterCat='all'; render(); }));
+  CATEGORIES.forEach(c => {
+    chips.appendChild(makeChip(c.icon+' '+c.label, state.filterCat===c.id, () => { state.filterCat=c.id; render(); }));
+  });
+  app.appendChild(chips);
+
+  const filtered = state.items.filter(i => state.filterCat==='all' || i.category===state.filterCat);
+  const owned = filtered.filter(i=>i.owned);
+  const wish = filtered.filter(i=>!i.owned);
+
+  if (owned.length) {
+    app.appendChild(h('div', { className:'section-label' }, `所持 (${owned.length})`));
+    owned.forEach(i => app.appendChild(makeItemCard(i)));
+  }
+  if (wish.length) {
+    app.appendChild(h('div', { className:'section-label' }, `ウィッシュリスト (${wish.length})`));
+    wish.forEach(i => app.appendChild(makeItemCard(i)));
+  }
+  if (!filtered.length) app.appendChild(h('div', { className:'empty' }, 'アイテムがありません'));
+}
+
+// ── Coordinate View ──
+function renderCoordinate(app) {
+  // Season
+  app.appendChild(h('div', { style: { padding:'16px 20px 8px' } },
+    h('div', { className:'form-label' }, 'SEASON'),
+  ));
+  const sbar = h('div', { className:'season-bar' });
+  SEASONS.forEach(s => {
+    const btn = h('button', {
+      className: 'season-pill' + (state.filterSeason===s.id ? ' active' : ''),
+      style: state.filterSeason===s.id ? { background:s.color, borderColor:'transparent' } : {},
+      onClick: () => { state.filterSeason=s.id; render(); }
+    }, s.label);
+    sbar.appendChild(btn);
+  });
+  app.appendChild(sbar);
+
+  // Context
+  app.appendChild(h('div', { style: { padding:'12px 20px 4px' } },
+    h('div', { className:'form-label' }, 'SCENE'),
+  ));
+  const cbar = h('div', { style: { display:'flex', gap:'8px', padding:'0 20px 12px' } });
+  CONTEXTS.forEach(c => {
+    cbar.appendChild(makeChip(c.label, state.filterContext===c.id, () => { state.filterContext=c.id; render(); }));
+  });
+  app.appendChild(cbar);
+
+  const matched = state.items.filter(i => i.owned && i.seasons.includes(state.filterSeason) && i.contexts.includes(state.filterContext));
+
+  CATEGORIES.forEach(cat => {
+    const catItems = matched.filter(i=>i.category===cat.id);
+    if (!catItems.length) return;
+    app.appendChild(h('div', { className:'section-label' }, cat.icon+' '+cat.label));
+    catItems.forEach(i => app.appendChild(makeItemCard(i, true)));
+  });
+
+  if (!matched.length) app.appendChild(h('div', { className:'empty' }, 'この条件に合う所持アイテムがありません'));
+}
+
+// ── Detail View ──
+function renderDetail(app) {
+  const item = state.items.find(i=>i.id===state.detailId);
+  if (!item) { state.view='closet'; render(); return; }
+
+  const wrap = h('div', { className:'detail' });
+  wrap.appendChild(h('button', { className:'detail-back', onClick: () => { state.view=state.tab; render(); } }, '← 戻る'));
+
+  const card = h('div', { className:'detail-card' });
+
+  // Photo
+  const photoBox = h('div', { className:'detail-photo' });
+  if (item.photo) photoBox.appendChild(h('img', { src: item.photo, alt: item.name }));
+  else photoBox.appendChild(h('span', null, getCat(item.category).icon));
+  card.appendChild(photoBox);
+
+  const body = h('div', { className:'detail-body' });
+  body.appendChild(h('div', { className:'detail-brand' }, (item.brand||'').toUpperCase()));
+  body.appendChild(h('div', { className:'detail-name' }, item.name));
+
+  const rows = [
+    ['カテゴリー', getCat(item.category).label],
+    ['カラー', getColor(item.color).label],
+    ['シーズン', item.seasons.map(s=>getSeason(s).label).join(' / ')],
+    ['シーン', item.contexts.map(c=>getContext(c).label).join(' / ')],
+    ['保有数量', item.owned ? (item.qty||1)+' 点' : '—'],
+  ];
+  rows.forEach(([l,v]) => {
+    body.appendChild(h('div', { className:'detail-row' },
+      h('span', { className:'detail-row-label' }, l),
+      h('span', { className:'detail-row-value' }, v),
+    ));
+  });
+
+  // Qty control in detail
+  if (item.owned) {
+    const qc = h('div', { style: { display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:'16px' } });
+    qc.appendChild(h('span', { style: { fontSize:'14px', color:'var(--sub)' } }, '数量を変更'));
+    qc.appendChild(makeQtyControl(item.qty||1, (v) => { item.qty=v; save(); render(); }));
+    body.appendChild(qc);
+  }
+
+  const actions = h('div', { className:'detail-actions' });
+
+  // Toggle owned
+  const toggleBtn = h('button', {
+    className:'btn-outline',
+    style: { flex:'1' },
+    onClick: () => {
+      item.owned = !item.owned;
+      if (item.owned && item.qty < 1) item.qty = 1;
+      if (!item.owned) item.qty = 0;
+      save(); render();
+    }
+  }, item.owned ? 'ウィッシュリストに戻す' : '所持済みにする');
+  actions.appendChild(toggleBtn);
+
+  // Edit
+  actions.appendChild(h('button', {
+    className:'btn-outline',
+    onClick: () => {
+      state.editId = item.id;
+      state.form = { ...item, seasons:[...item.seasons], contexts:[...item.contexts] };
+      state.showModal = true;
+      render();
+    }
+  }, '編集'));
+
+  // Delete
+  actions.appendChild(h('button', {
+    className:'btn-outline btn-danger',
+    onClick: () => {
+      if (confirm('「'+item.name+'」を削除しますか？')) {
+        state.items = state.items.filter(i=>i.id!==item.id);
+        save(); state.view = state.tab; showToast('削除しました');
+      }
+    }
+  }, '削除'));
+
+  body.appendChild(actions);
+  card.appendChild(body);
+  wrap.appendChild(card);
+  app.appendChild(wrap);
+}
+
+// ── Add/Edit Modal ──
+function openAddModal() {
+  state.editId = null;
+  state.form = emptyForm();
+  state.showModal = true;
+  render();
+}
+
+function renderModal(app) {
+  const isEdit = !!state.editId;
+  const overlay = h('div', { className:'modal-overlay', onClick: (e) => { if (e.target===e.currentTarget) { state.showModal=false; render(); } } });
+  const sheet = h('div', { className:'modal-sheet' });
+
+  sheet.appendChild(h('div', { className:'modal-header' },
+    h('span', { className:'modal-title' }, isEdit ? 'アイテム編集' : 'アイテム追加'),
+    h('button', { className:'modal-close', onClick: () => { state.showModal=false; render(); } }, '✕'),
+  ));
+
+  // Photo
+  const photoArea = h('div', { className:'photo-area' });
+  if (state.form.photo) {
+    photoArea.appendChild(h('img', { src: state.form.photo, alt:'preview' }));
+    photoArea.appendChild(h('button', { className:'photo-remove', onClick: (e) => { e.stopPropagation(); state.form.photo=''; render(); } }, '✕'));
+  } else {
+    photoArea.appendChild(h('div', { className:'icon' }, '📷'));
+    photoArea.appendChild(h('div', { className:'placeholder' }, 'タップして写真を追加'));
+  }
+  const fileInput = h('input', { type:'file', accept:'image/*', style: { display:'none' }, onChange: handlePhotoUpload });
+  photoArea.addEventListener('click', () => fileInput.click());
+  const photoGroup = h('div', { className:'form-group' }, photoArea, fileInput);
+  sheet.appendChild(photoGroup);
+
+  // Name
+  sheet.appendChild(formInput('アイテム名', state.form.name, '例: Better Sweater Jacket', v => { state.form.name=v; }));
+
+  // Brand
+  sheet.appendChild(formInput('ブランド', state.form.brand, '例: Patagonia', v => { state.form.brand=v; }));
+
+  // Category
+  const catGroup = h('div', { className:'form-group' },
+    h('label', { className:'form-label' }, 'カテゴリー'),
+    h('div', { className:'form-row' },
+      ...CATEGORIES.map(c => makeChip(c.icon+' '+c.label, state.form.category===c.id, () => { state.form.category=c.id; render(); }, true))
+    )
+  );
+  sheet.appendChild(catGroup);
+
+  // Color
+  const colGroup = h('div', { className:'form-group' },
+    h('label', { className:'form-label' }, 'カラー'),
+    h('div', { className:'form-row' },
+      ...COLORS.map(c => {
+        const btn = h('button', {
+          className: 'color-btn' + (state.form.color===c.id ? ' active' : ''),
+          onClick: () => { state.form.color=c.id; render(); }
+        },
+          h('div', { className:'color-dot', style:{ background:c.hex } }),
+          c.label
+        );
+        return btn;
+      })
+    )
+  );
+  sheet.appendChild(colGroup);
+
+  // Season
+  const seaGroup = h('div', { className:'form-group' },
+    h('label', { className:'form-label' }, 'シーズン（複数可）'),
+    h('div', { className:'form-row' },
+      ...SEASONS.map(s => makeChip(s.label, state.form.seasons.includes(s.id), () => {
+        toggleFormArray('seasons', s.id); render();
+      }, true))
+    )
+  );
+  sheet.appendChild(seaGroup);
+
+  // Context
+  const ctxGroup = h('div', { className:'form-group' },
+    h('label', { className:'form-label' }, 'シーン（複数可）'),
+    h('div', { className:'form-row' },
+      ...CONTEXTS.map(c => makeChip(c.label, state.form.contexts.includes(c.id), () => {
+        toggleFormArray('contexts', c.id); render();
+      }, true))
+    )
+  );
+  sheet.appendChild(ctxGroup);
+
+  // Owned + Qty
+  const ownRow = h('div', { className:'form-group', style:{ display:'flex', alignItems:'center', justifyContent:'space-between' } },
+    h('div', null,
+      h('label', { className:'form-label', style:{ marginBottom:'0' } }, '所持'),
+      makeChip(state.form.owned ? '所持済み ✓' : '未所持', state.form.owned, () => {
+        state.form.owned = !state.form.owned;
+        if (state.form.owned && state.form.qty < 1) state.form.qty = 1;
+        if (!state.form.owned) state.form.qty = 0;
+        render();
+      }, true)
+    ),
+    state.form.owned ? h('div', null,
+      h('label', { className:'form-label', style:{ marginBottom:'4px', textAlign:'right' } }, '数量'),
+      makeQtyControl(state.form.qty, (v) => { state.form.qty = v; render(); })
+    ) : null
+  );
+  sheet.appendChild(ownRow);
+
+  // Submit
+  const submitBtn = h('button', {
+    className: 'btn-primary',
+    disabled: !state.form.name.trim(),
+    style: { marginTop:'12px' },
+    onClick: () => {
+      if (!state.form.name.trim()) return;
+      if (isEdit) {
+        const idx = state.items.findIndex(i=>i.id===state.editId);
+        if (idx >= 0) state.items[idx] = { ...state.form, id: state.editId };
+      } else {
+        state.items.push({ ...state.form, id: 'u'+Date.now() });
+      }
+      save();
+      state.showModal = false;
+      state.editId = null;
+      showToast(isEdit ? '更新しました' : '追加しました');
+    }
+  }, isEdit ? '更新する' : '追加する');
+  sheet.appendChild(submitBtn);
+
+  overlay.appendChild(sheet);
+  app.appendChild(overlay);
+}
+
+// ── Photo upload handler ──
+function handlePhotoUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    // Resize to save storage space
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const MAX = 400;
+      let w = img.width, ht = img.height;
+      if (w > ht) { ht = ht * MAX / w; w = MAX; } else { w = w * MAX / ht; ht = MAX; }
+      canvas.width = w; canvas.height = ht;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, ht);
+      state.form.photo = canvas.toDataURL('image/jpeg', 0.8);
+      render();
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── Component helpers ──
+function makeChip(label, active, onClick, small) {
+  return h('button', {
+    className: 'chip' + (active ? ' active' : '') + (small ? ' sm' : ''),
+    onClick: onClick
+  }, label);
+}
+
+function makeQtyControl(qty, onChange) {
+  return h('div', { className:'qty-control' },
+    h('button', { className:'qty-btn', onClick: (e) => { e.stopPropagation(); if (qty > 1) onChange(qty - 1); } }, '−'),
+    h('span', { className:'qty-val' }, ''+qty),
+    h('button', { className:'qty-btn', onClick: (e) => { e.stopPropagation(); onChange(qty + 1); } }, '+'),
+  );
+}
+
+function makeItemCard(item, compact) {
+  const cat = getCat(item.category);
+  const col = getColor(item.color);
+
+  const thumb = h('div', { className: 'item-thumb' + (!item.owned ? ' dimmed' : '') });
+  if (item.photo) thumb.appendChild(h('img', { src: item.photo, alt: item.name }));
+  else {
+    thumb.style.background = col.hex + '22';
+    thumb.appendChild(h('span', null, cat.icon));
+  }
+
+  const meta = h('div', { className:'item-meta' });
+  if (item.owned && item.qty > 1) meta.appendChild(h('span', { className:'item-qty' }, '×'+item.qty));
+  if (!compact) {
+    meta.appendChild(h('span', { className: 'item-badge ' + (item.owned ? 'badge-owned' : 'badge-wish') },
+      item.owned ? '所持 ✓' : 'ウィッシュ'
+    ));
+  }
+
+  const card = h('div', { className:'item-card', onClick: () => { state.detailId=item.id; state.view='detail'; render(); } },
+    thumb,
+    h('div', { className:'item-info' },
+      h('div', { className:'item-name', style: !item.owned ? { opacity:'0.5' } : {} }, item.name),
+      h('div', { className:'item-brand' }, item.brand),
+      meta,
+    ),
+  );
+  return card;
+}
+
+function formInput(label, value, placeholder, onChange) {
+  const group = h('div', { className:'form-group' },
+    h('label', { className:'form-label' }, label),
+    h('input', { className:'form-input', value: value, placeholder: placeholder, onInput: (e) => onChange(e.target.value) }),
+  );
+  return group;
+}
+
+function toggleFormArray(field, value) {
+  const arr = state.form[field];
+  const idx = arr.indexOf(value);
+  if (idx >= 0) arr.splice(idx, 1); else arr.push(value);
+}
+
+// ── First render ──
+render();
+</script>
+</body>
+</html>
