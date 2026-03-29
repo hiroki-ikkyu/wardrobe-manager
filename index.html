@@ -648,6 +648,7 @@ function renderModal(app) {
   // Submit
   const submitBtn = h('button', {
     className: 'btn-primary',
+    id: 'modal-submit-btn',
     disabled: !state.form.name.trim(),
     style: { marginTop:'12px' },
     onClick: () => {
@@ -742,7 +743,17 @@ function makeItemCard(item, compact) {
 function formInput(label, value, placeholder, onChange) {
   const group = h('div', { className:'form-group' },
     h('label', { className:'form-label' }, label),
-    h('input', { className:'form-input', value: value, placeholder: placeholder, onInput: (e) => onChange(e.target.value) }),
+    h('input', { className:'form-input', value: value, placeholder: placeholder, onInput: (e) => {
+      onChange(e.target.value);
+      // Update submit button disabled state without full re-render
+      const btn = document.getElementById('modal-submit-btn');
+      if (btn) {
+        const hasName = state.form.name.trim().length > 0;
+        btn.disabled = !hasName;
+        btn.style.background = hasName ? 'var(--accent)' : '#ccc';
+        btn.style.cursor = hasName ? 'pointer' : 'default';
+      }
+    } }),
   );
   return group;
 }
