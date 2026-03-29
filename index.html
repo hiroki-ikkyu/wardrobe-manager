@@ -370,7 +370,7 @@ function render() {
 
   // Tabs
   const tabs = h('div', { className:'tabs' });
-  [{id:'closet',label:'クローゼット'},{id:'coordinate',label:'コーデ'}].forEach(t => {
+  [{id:'closet',label:'クローゼット'},{id:'coordinate',label:'コーデ'},{id:'settings',label:'設定'}].forEach(t => {
     tabs.appendChild(h('button', {
       className: 'tab' + (state.tab === t.id ? ' active' : ''),
       onClick: () => { state.tab = t.id; state.view = t.id; render(); }
@@ -381,9 +381,10 @@ function render() {
   if (state.view === 'closet') renderCloset(app);
   else if (state.view === 'coordinate') renderCoordinate(app);
   else if (state.view === 'detail') renderDetail(app);
+  else if (state.view === 'settings') renderSettingsView(app);
 
-  // FAB
-  app.appendChild(h('button', { className:'fab', onClick: openAddModal }, '+'));
+  // FAB (hidden on settings tab)
+  if (state.view !== 'settings') app.appendChild(h('button', { className:'fab', onClick: openAddModal }, '+'));
 
   // Modal
   if (state.showModal) renderModal(app);
@@ -414,6 +415,48 @@ function renderCloset(app) {
     wish.forEach(i => app.appendChild(makeItemCard(i)));
   }
   if (!filtered.length) app.appendChild(h('div', { className:'empty' }, 'アイテムがありません'));
+}
+
+// ── Settings View ──
+function renderSettingsView(app) {
+  const wrap = h('div', { style: { padding:'20px' } });
+  wrap.appendChild(h('div', { style: { fontSize:11, fontWeight:600, color:'var(--sub)', letterSpacing:1.5, textTransform:'uppercase', marginBottom:16 } }, 'データ管理'));
+  const btnStyle = { display:'block', width:'100%', padding:'14px', borderRadius:12, border:'none', fontSize:15, fontWeight:600, cursor:'pointer', fontFamily:'inherit', marginBottom:10 };
+  const bkBtn = h('button', { style: { ...btnStyle, background:'var(--accent)', color:'#fff' }, onClick: backupWardrobeData }, 'データをバックアップ');
+  const rsBtn = h('button', { style: { ...btnStyle, background:'#f5f5f7', color:'var(--text)' }, onClick: restoreWardrobeData }, 'データを復元');
+  wrap.appendChild(bkBtn);
+  wrap.appendChild(rsBtn);
+  app.appendChild(wrap);
+}
+function backupWardrobeData() {
+  const d = localStorage.getItem(STORAGE_KEY);
+  const blob = new Blob([d || '{}'], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `wardrobe-manager_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function restoreWardrobeData() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      if (!confirm('現在のデータを上書きしますか？')) return;
+      try {
+        JSON.parse(ev.target.result);
+        localStorage.setItem(STORAGE_KEY, ev.target.result);
+        location.reload();
+      } catch { alert('ファイルが無効です。'); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
 }
 
 // ── Coordinate View ──
